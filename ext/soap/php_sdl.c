@@ -1592,6 +1592,15 @@ static sdlPtr get_sdl_from_cache(const char *fn, const char *uri, size_t uri_len
 	sdl->source = sdl_deserialize_string(&in, end);
 	sdl->target_ns = sdl_deserialize_string(&in, end);
 
+	if (UNEXPECTED(end - in < 16)) {
+		/* not enough bytes for the four count fields */
+		if (sdl->source) efree(sdl->source);
+		if (sdl->target_ns) efree(sdl->target_ns);
+		efree(sdl);
+		efree(buf);
+		unlink(fn);
+		return NULL;
+	}
 	WSDL_CACHE_GET_INT(num_groups, &in);
 	WSDL_CACHE_GET_INT(num_types, &in);
 	WSDL_CACHE_GET_INT(num_elements, &in);
